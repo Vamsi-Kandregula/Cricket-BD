@@ -1,0 +1,272 @@
+openapi: 3.0.3
+info:
+  title: Real-Time Cricket Analytics API
+  description: API endpoints for querying real-time matches statistics and server health.
+  version: 1.0.0
+servers:
+  - url: http://localhost:5000/api
+    description: Development Server
+paths:
+  /dashboard:
+    get:
+      summary: Retrieve dashboard KPI aggregates
+      description: Returns the real-time match analytics metrics consolidated from the Snowflake fact table via dbt models.
+      responses:
+        '200':
+          description: Successful retrieval
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardSummary'
+        '500':
+          description: Database or connection error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ERROR
+                  message:
+                    type: string
+                    example: Snowflake database query failed to execute.
+  /health:
+    get:
+      summary: API health and connection diagnostics
+      description: Checks uptime status along with database connection readiness.
+      responses:
+        '200':
+          description: Server and Snowflake connection are healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthStatus'
+  /matches:
+    get:
+      summary: Retrieve all matches with consolidated scores
+      description: Returns a list of matches, including team names, formatted scores, current live overs, cities, and dates. Can be filtered by status, matchType, or a general search term.
+      parameters:
+        - name: status
+          in: query
+          description: Filter matches by status (LIVE, COMPLETED, ABANDONED, NO_RESULT)
+          required: false
+          schema:
+            type: string
+        - name: matchType
+          in: query
+          description: Filter matches by format (e.g. T20, ODI, Test)
+          required: false
+          schema:
+            type: string
+        - name: search
+          in: query
+          description: Search term to query against match names, teams, venues, or cities
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful retrieval of matches list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CricketMatch'
+        '500':
+          description: Database or connection error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ERROR
+                  message:
+                    type: string
+                    example: Snowflake database query failed to execute.
+  /venues:
+    get:
+      summary: Retrieve all venues with performance statistics
+      description: Returns a list of all venues, matches hosted, average scores, record totals, countries, flags, and coordinates.
+      responses:
+        '200':
+          description: Successful retrieval of venues list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/VenueStats'
+        '500':
+          description: Database or connection error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ERROR
+                  message:
+                    type: string
+                    example: Snowflake database query failed to execute.
+components:
+  schemas:
+    DashboardSummary:
+      type: object
+      properties:
+        totalMatches:
+          type: integer
+          example: 11
+        liveMatches:
+          type: integer
+          example: 2
+        completedMatches:
+          type: integer
+          example: 7
+        abandonedMatches:
+          type: integer
+          example: 2
+        citiesIngested:
+          type: integer
+          example: 7
+        venuesRegistered:
+          type: integer
+          example: 6
+        matchFormats:
+          type: integer
+          example: 6
+        resultDeciders:
+          type: integer
+          example: 8
+        pipelineStatus:
+          type: string
+          example: synced
+        lastUpdated:
+          type: string
+          format: date-time
+          example: '2026-07-04T18:50:00Z'
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+          example: UP
+        snowflake:
+          type: string
+          example: CONNECTED
+    CricketMatch:
+      type: object
+      properties:
+        MATCH_ID:
+          type: string
+          example: 'M001'
+        MATCH_NAME:
+          type: string
+          example: 'Essex vs Kent'
+        TEAM_1:
+          type: string
+          example: 'Essex'
+        TEAM_2:
+          type: string
+          example: 'Kent'
+        MATCHTYPE:
+          type: string
+          example: 'T20 Blast'
+        STATUS:
+          type: string
+          example: 'COMPLETED'
+        RESULT_TYPE:
+          type: string
+          example: 'Won by 5 wickets'
+        WINNER:
+          type: string
+          nullable: true
+          example: 'Kent'
+        WIN_MARGIN:
+          type: string
+          nullable: true
+          example: '5 wickets'
+        MATCH_DATE:
+          type: string
+          example: '2026-07-04'
+        MATCH_TIME:
+          type: string
+          example: '18:00'
+        VENUE_NAME:
+          type: string
+          example: 'County Ground'
+        CITY:
+          type: string
+          example: 'Chelmsford'
+        TEAM_1_SCORE:
+          type: string
+          nullable: true
+          example: '182/10'
+        TEAM_1_OVERS:
+          type: string
+          nullable: true
+          example: '20.0'
+        TEAM_2_SCORE:
+          type: string
+          nullable: true
+          example: '183/5'
+        TEAM_2_OVERS:
+          type: string
+          nullable: true
+          example: '19.4'
+        CURRENT_OVERS:
+          type: string
+          nullable: true
+          example: '19.4'
+    VenueStats:
+      type: object
+      properties:
+        venueName:
+          type: string
+          example: 'Wankhede Stadium'
+        city:
+          type: string
+          example: 'Mumbai'
+        country:
+          type: string
+          example: 'India'
+        matchesPlayed:
+          type: integer
+          example: 45
+        avgInnings1Score:
+          type: integer
+          example: 178
+        avgInnings2Score:
+          type: integer
+          example: 169
+        highestScore:
+          type: string
+          example: '235/1'
+        highestScorerTeam:
+          type: string
+          example: 'Royal Challengers Bangalore'
+        flagCode:
+          type: string
+          example: 'in'
+        latitude:
+          type: number
+          format: float
+          example: 18.9750
+        longitude:
+          type: number
+          format: float
+          example: 72.8258
+        mapX:
+          type: number
+          format: float
+          example: 280
+        mapY:
+          type: number
+          format: float
+          example: 160
+
+
