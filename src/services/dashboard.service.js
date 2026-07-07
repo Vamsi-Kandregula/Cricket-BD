@@ -19,7 +19,7 @@ const getDashboardSummary = async () => {
       citiesIngested: 0,
       venuesRegistered: 0,
       matchFormats: 0,
-      resultDeciders: 0,
+      noResultMatches: 0,
       pipelineStatus: 'synced',
       lastUpdated: new Date().toISOString()
     };
@@ -35,7 +35,7 @@ const getDashboardSummary = async () => {
     citiesIngested: Number(row.CITIES_INGESTED ?? 0),
     venuesRegistered: Number(row.VENUES_REGISTERED ?? 0),
     matchFormats: Number(row.MATCH_FORMATS ?? 0),
-    resultDeciders: Number(row.RESULT_DECIDERS ?? 0),
+    noResultMatches: Number(row.NO_RESULT_MATCHES ?? 0),
     // Fall back to defaults if these columns are not returned by the dbt model
     pipelineStatus: row.PIPELINE_STATUS || 'synced',
     lastUpdated: row.LAST_UPDATED || new Date().toISOString()
