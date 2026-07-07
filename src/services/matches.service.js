@@ -39,7 +39,7 @@ const getMatches = async (filters = {}) => {
     if (row.RESULT_TYPE) {
       const rt = row.RESULT_TYPE.toUpperCase();
       if (rt === 'LIVE') apiStatus = 'LIVE';
-      else if (rt === 'COMPLETED') apiStatus = 'COMPLETED';
+      else if (rt === 'COMPLETED' || rt === 'MATCH TIED') apiStatus = 'COMPLETED';
       else if (rt === 'ABANDONED') apiStatus = 'ABANDONED';
       else if (rt.includes('OUTDATED') || rt.includes('⚠️')) apiStatus = 'OUTDATED';
     }
